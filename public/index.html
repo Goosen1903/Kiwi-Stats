@@ -175,10 +175,10 @@ body {
 </div>
 
 <!-- Grafer -->
-<div class="sec">Daglig vasket areal per robot</div>
+<div class="sec">Ukentlig vasket areal per robot</div>
 <div class="chart-card">
-  <div class="chart-title">Areal per dag</div>
-  <div class="chart-sub">m² rengjort daglig – alle tre roboter overlappet</div>
+  <div class="chart-title">Areal per uke</div>
+  <div class="chart-sub">m² rengjort ukentlig – alle tre roboter</div>
   <canvas id="chart-daily" height="200"></canvas>
 </div>
 
@@ -282,25 +282,42 @@ function render(d) {
       <td style="padding-right:22px">${fmt(r.totalKm, ' km', 1)}</td>
     </tr>`).join('');
 
-  // Daglig overlapp-graf
-  const allDates = [...new Set(d.perRobot.flatMap(r => r.dailyData.map(x => x.date)))].sort();
-  const dayLabels = allDates.map(dt => {
-    const d2 = new Date(dt + 'T00:00:00');
-    return d2.toLocaleDateString('no', { day: 'numeric', month: 'short' });
+  // Ukentlig graf – aggreger daglig data til uker
+  function toWeekKey(dateStr) {
+    const dt = new Date(dateStr + 'T00:00:00');
+    // Mandag i samme uke
+    const day = dt.getDay() === 0 ? 6 : dt.getDay() - 1;
+    const mon = new Date(dt); mon.setDate(dt.getDate() - day);
+    return mon.toISOString().slice(0, 10);
+  }
+
+  const allWeekKeys = [...new Set(
+    d.perRobot.flatMap(r => r.dailyData.map(x => toWeekKey(x.date)))
+  )].sort();
+
+  const weekLabels = allWeekKeys.map(wk => {
+    const mon = new Date(wk + 'T00:00:00');
+    const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+    return mon.toLocaleDateString('no', { day: 'numeric', month: 'short' }) +
+      ' – ' + sun.toLocaleDateString('no', { day: 'numeric', month: 'short' });
   });
 
-  makeBar('chart-daily', dayLabels,
-    d.perRobot.map((r, i) => ({
-      label: r.name,
-      data: allDates.map(dt => {
-        const found = r.dailyData.find(x => x.date === dt);
-        return found ? found.areaM2 : 0;
-      }),
-      backgroundColor: COLORS[i] + '33',
-      borderColor: COLORS[i],
-      borderWidth: 1,
-      borderRadius: 3,
-    })),
+  makeBar('chart-daily', weekLabels,
+    d.perRobot.map((r, i) => {
+      const weekMap = {};
+      r.dailyData.forEach(x => {
+        const wk = toWeekKey(x.date);
+        weekMap[wk] = (weekMap[wk] || 0) + x.areaM2;
+      });
+      return {
+        label: r.name,
+        data: allWeekKeys.map(wk => weekMap[wk] || 0),
+        backgroundColor: COLORS[i] + '33',
+        borderColor: COLORS[i],
+        borderWidth: 1,
+        borderRadius: 4,
+      };
+    }),
     v => v.toLocaleString('no') + ' m²'
   );
 
