@@ -213,7 +213,7 @@ app.get('/health', (_, res) => res.json({ ok: true }));
 
 // Keep-alive
 setInterval(() => {
-  https.get('https://gausium-report-production.up.railway.app/health', r => r.resume()).on('error', () => {});
+  https.get('https://kiwi-stats-production.up.railway.app/health', r => r.resume()).on('error', () => {});
 }, 4 * 60 * 1000);
 
 app.listen(PORT, async () => {
