@@ -286,6 +286,9 @@ function render(d) {
       <td style="padding-right:22px">${fmt(r.totalKm, ' km', 1)}</td>
     </tr>`).join('');
 
+  // Alle unike datoer (brukes av kumulativ graf)
+  const allDates = [...new Set(d.perRobot.flatMap(r => r.dailyData.map(x => x.date)))].sort();
+
   // Ukentlig graf – aggreger daglig data til uker
   function toWeekKey(dateStr) {
     const dt = new Date(dateStr + 'T00:00:00');
