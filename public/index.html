@@ -288,6 +288,10 @@ function render(d) {
 
   // Alle unike datoer (brukes av kumulativ graf)
   const allDates = [...new Set(d.perRobot.flatMap(r => r.dailyData.map(x => x.date)))].sort();
+  const dayLabels = allDates.map(dt => {
+    const d2 = new Date(dt + 'T00:00:00');
+    return d2.toLocaleDateString('no', { day: 'numeric', month: 'short' });
+  });
 
   // Ukentlig graf – aggreger daglig data til uker
   function toWeekKey(dateStr) {
