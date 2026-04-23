@@ -121,7 +121,8 @@ async function buildReport() {
 
   // Per-robot stats
   const perRobot = results.map(r => {
-    const m = r.period?.monitoringData || {};
+    const sn   = r.sn;
+    const m    = r.period?.monitoringData || {};
     const days = r.period?.statisticsData || [];
     const activeDays = days.filter(d => (d.coverageArea || 0) > 0);
     const areaDays   = activeDays.map(d => d.coverageArea || 0);
