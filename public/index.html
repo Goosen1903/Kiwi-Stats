@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gausium Rapport – jan–apr 2026</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:    #f4f6f8;
+  --card:  #ffffff;
+  --b:     rgba(0,0,0,0.07);
+  --bh:    rgba(0,0,0,0.14);
+  --t:     #0f172a;
+  --t2:    rgba(15,23,42,0.55);
+  --t3:    rgba(15,23,42,0.35);
+  --green: #11c55e;
+  --blue:  #3b82f6;
+  --purple:#8b5cf6;
+  --r:     12px;
+}
+body {
+  background: var(--bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--t);
+  padding: 32px 24px 56px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Header */
+.hd { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 36px; flex-wrap: wrap; gap: 12px; }
+.hd-title { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+.hd-sub { font-size: 13px; color: var(--t2); margin-top: 4px; }
+.badge {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; font-weight: 600; color: var(--t2);
+  background: var(--card); border: 1px solid var(--b);
+  border-radius: 100px; padding: 6px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.badge-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+
+/* Section */
+.sec { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--t3); margin: 32px 0 14px; }
+
+/* Grids */
+.grid5 { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+
+/* Stat card */
+.card {
+  background: var(--card); border: 1px solid var(--b); border-radius: var(--r);
+  padding: 22px 20px 18px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: box-shadow .2s, border-color .2s;
+}
+.card:hover { border-color: var(--bh); box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+.card-icon { font-size: 20px; margin-bottom: 12px; }
+.card-val {
+  font-size: 30px; font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1; color: var(--t); font-variant-numeric: tabular-nums; margin-bottom: 5px;
+}
+.card-val.loading {
+  background: linear-gradient(90deg, rgba(0,0,0,.05) 25%, rgba(0,0,0,.10) 50%, rgba(0,0,0,.05) 75%);
+  background-size: 200% 100%; animation: shimmer 1.4s infinite;
+  border-radius: 6px; width: 100px; height: 34px; display: block;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.card-lbl { font-size: 13px; font-weight: 600; color: var(--t2); }
+.card-sub { font-size: 11px; color: var(--t3); margin-top: 3px; }
+
+/* Highlight card */
+.card.highlight { border-color: rgba(17,197,94,0.3); background: rgba(17,197,94,0.03); }
+.card.highlight .card-val { color: #059640; }
+
+/* Chart card */
+.chart-card {
+  background: var(--card); border: 1px solid var(--b); border-radius: var(--r);
+  padding: 24px 22px 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.chart-title { font-size: 14px; font-weight: 700; color: var(--t); margin-bottom: 3px; }
+.chart-sub { font-size: 12px; color: var(--t3); margin-bottom: 18px; }
+
+/* Robot comparison table */
+.rtable { width: 100%; border-collapse: collapse; font-size: 13px; }
+.rtable th {
+  text-align: left; font-size: 11px; font-weight: 700; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--t3);
+  padding: 0 14px 10px 0; border-bottom: 1px solid var(--b);
+}
+.rtable th:last-child, .rtable td:last-child { text-align: right; padding-right: 0; }
+.rtable td {
+  padding: 11px 14px 11px 0; border-bottom: 1px solid rgba(0,0,0,0.04);
+  color: var(--t); font-variant-numeric: tabular-nums; font-weight: 500;
+}
+.rtable tr:last-child td { border-bottom: none; }
+.robot-label { font-weight: 700; }
+.robot-sn { font-size: 11px; color: var(--t3); display: block; margin-top: 2px; }
+.winner { color: var(--green); font-weight: 700; }
+
+/* Mini bar */
+.mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.mini-bar { flex: 1; height: 5px; background: rgba(0,0,0,0.07); border-radius: 100px; overflow: hidden; min-width: 50px; }
+.mini-bar-fill { height: 100%; background: var(--green); border-radius: 100px; transition: width 1s ease; }
+
+/* Error */
+.err { background: rgba(239,68,68,.06); border: 1px solid rgba(239,68,68,.2); border-radius: var(--r); padding: 14px 18px; font-size: 13px; color: #dc2626; margin-top: 20px; display: none; }
+</style>
+</head>
+<body>
+
+<div class="hd">
+  <div>
+    <div class="hd-title">Robotrapport</div>
+    <div class="hd-sub">10. januar – 7. april 2026 &nbsp;·&nbsp; 3 roboter</div>
+  </div>
+  <div class="badge"><span class="badge-dot"></span><span id="hd-updated">Henter data…</span></div>
+</div>
+
+<!-- Aggregerte nøkkeltall -->
+<div class="sec">Samlet – alle tre roboter</div>
+<div class="grid5">
+  <div class="card highlight">
+    <div class="card-icon">🧹</div>
+    <div class="card-val loading" id="a-area"></div>
+    <div class="card-lbl">Totalt vasket</div>
+    <div class="card-sub">m² hele perioden</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">⚡</div>
+    <div class="card-val loading" id="a-eff-median"></div>
+    <div class="card-lbl">Median effekt</div>
+    <div class="card-sub">m² per driftstime</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">📊</div>
+    <div class="card-val loading" id="a-median-day"></div>
+    <div class="card-lbl">Median dag</div>
+    <div class="card-sub">m² på aktive dager</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">⏱️</div>
+    <div class="card-val loading" id="a-hours"></div>
+    <div class="card-lbl">Driftstimer</div>
+    <div class="card-sub">Alle roboter samlet</div>
+  </div>
+  <div class="card">
+    <div class="card-icon">📍</div>
+    <div class="card-val loading" id="a-km"></div>
+    <div class="card-lbl">Km kjørt</div>
+    <div class="card-sub">Alle roboter samlet</div>
+  </div>
+</div>
+
+<!-- Per robot sammenligning -->
+<div class="sec">Per robot – sammenligning</div>
+<div class="card" style="padding:0;overflow:hidden">
+  <table class="rtable">
+    <thead>
+      <tr>
+        <th style="padding-left:22px">Robot</th>
+        <th>Vasket areal</th>
+        <th>Effekt (m²/t)</th>
+        <th>Median dag</th>
+        <th>Aktive dager</th>
+        <th>Driftstimer</th>
+        <th style="padding-right:22px">Km</th>
+      </tr>
+    </thead>
+    <tbody id="robot-tbody"></tbody>
+  </table>
+</div>
+
+<!-- Grafer -->
+<div class="sec">Daglig vasket areal per robot</div>
+<div class="chart-card">
+  <div class="chart-title">Areal per dag</div>
+  <div class="chart-sub">m² rengjort daglig – alle tre roboter overlappet</div>
+  <canvas id="chart-daily" height="200"></canvas>
+</div>
+
+<div class="sec" style="margin-top:28px">Effekt og ytelse</div>
+<div class="grid2">
+  <div class="chart-card">
+    <div class="chart-title">m² per driftstime</div>
+    <div class="chart-sub">Effektivitet per robot</div>
+    <canvas id="chart-eff" height="200"></canvas>
+  </div>
+  <div class="chart-card">
+    <div class="chart-title">Totalt vasket areal</div>
+    <div class="chart-sub">m² per robot hele perioden</div>
+    <canvas id="chart-area" height="200"></canvas>
+  </div>
+</div>
+
+<div class="sec" style="margin-top:28px">Kumulativt areal</div>
+<div class="chart-card">
+  <div class="chart-title">Akkumulert areal over tid</div>
+  <div class="chart-sub">Total m² vasket hittil – per robot</div>
+  <canvas id="chart-cum" height="160"></canvas>
+</div>
+
+<div class="err" id="err"></div>
+
+<script>
+const API    = '/api/report';
+const COLORS = ['#11c55e', '#3b82f6', '#8b5cf6'];
+const charts = {};
+
+function fmt(n, suffix='', dec=0) {
+  if (n == null) return '—';
+  const v = dec ? n.toFixed(dec) : Math.round(n);
+  return Number(v).toLocaleString('no') + suffix;
+}
+
+function chartOpts(tickCbX, tickCbY) {
+  return {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: { legend: { display: true, labels: { color: '#0f172a', font: { size: 11, weight: '600' } } } },
+    scales: {
+      x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#0f172a', font: { size: 11, weight: '500' }, callback: tickCbX } },
+      y: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#0f172a', font: { size: 11, weight: '500' }, callback: tickCbY }, beginAtZero: true },
+    },
+  };
+}
+
+function makeBar(id, labels, datasets, tickCbY) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: { ...chartOpts(undefined, tickCbY), plugins: { legend: { display: datasets.length > 1, labels: { color: '#0f172a', font: { size: 11, weight: '600' } } } } },
+  });
+}
+
+function makeLine(id, labels, datasets, tickCbY) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id).getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets },
+    options: chartOpts(undefined, tickCbY),
+  });
+}
+
+function render(d) {
+  document.querySelectorAll('.card-val.loading').forEach(el => el.classList.remove('loading'));
+
+  const a = d.aggregate;
+  document.getElementById('a-area').textContent        = fmt(a.totalAreaM2) + ' m²';
+  document.getElementById('a-eff-median').textContent  = fmt(a.medianEffM2PerHour) + ' m²/t';
+  document.getElementById('a-median-day').textContent  = fmt(a.medianDailyArea) + ' m²';
+  document.getElementById('a-hours').textContent       = fmt(a.totalHours, ' t', 1);
+  document.getElementById('a-km').textContent          = fmt(a.totalKm, ' km', 1);
+
+  const ts = new Date(d.updatedAt);
+  document.getElementById('hd-updated').textContent =
+    'Oppdatert ' + ts.toLocaleTimeString('no', { hour: '2-digit', minute: '2-digit' });
+
+  // Robot-tabell
+  const maxArea = Math.max(...d.perRobot.map(r => r.totalAreaM2), 1);
+  const bestEff = Math.max(...d.perRobot.map(r => r.effM2PerHour));
+  document.getElementById('robot-tbody').innerHTML = d.perRobot.map((r, i) => `
+    <tr>
+      <td style="padding-left:22px">
+        <span class="robot-label" style="color:${COLORS[i]}">${r.name}</span>
+        <span class="robot-sn">${r.sn}</span>
+      </td>
+      <td>
+        <div class="mini-bar-wrap">
+          <div class="mini-bar"><div class="mini-bar-fill" style="width:${Math.round(r.totalAreaM2/maxArea*100)}%;background:${COLORS[i]}"></div></div>
+          <span>${fmt(r.totalAreaM2)} m²</span>
+        </div>
+      </td>
+      <td class="${r.effM2PerHour === bestEff ? 'winner' : ''}">${fmt(r.effM2PerHour)} m²/t</td>
+      <td>${fmt(r.medianAreaPerDay)} m²</td>
+      <td>${r.activeDays} dager</td>
+      <td>${fmt(r.totalHours, ' t', 1)}</td>
+      <td style="padding-right:22px">${fmt(r.totalKm, ' km', 1)}</td>
+    </tr>`).join('');
+
+  // Daglig overlapp-graf
+  const allDates = [...new Set(d.perRobot.flatMap(r => r.dailyData.map(x => x.date)))].sort();
+  const dayLabels = allDates.map(dt => {
+    const d2 = new Date(dt + 'T00:00:00');
+    return d2.toLocaleDateString('no', { day: 'numeric', month: 'short' });
+  });
+
+  makeBar('chart-daily', dayLabels,
+    d.perRobot.map((r, i) => ({
+      label: r.name,
+      data: allDates.map(dt => {
+        const found = r.dailyData.find(x => x.date === dt);
+        return found ? found.areaM2 : 0;
+      }),
+      backgroundColor: COLORS[i] + '33',
+      borderColor: COLORS[i],
+      borderWidth: 1,
+      borderRadius: 3,
+    })),
+    v => v.toLocaleString('no') + ' m²'
+  );
+
+  // Effektivitet per robot
+  makeBar('chart-eff',
+    d.perRobot.map(r => r.name),
+    [{
+      label: 'm²/t',
+      data: d.perRobot.map(r => r.effM2PerHour),
+      backgroundColor: d.perRobot.map((_, i) => COLORS[i] + '33'),
+      borderColor: d.perRobot.map((_, i) => COLORS[i]),
+      borderWidth: 1, borderRadius: 6,
+    }],
+    v => v.toLocaleString('no') + ' m²/t'
+  );
+
+  // Totalt areal per robot
+  makeBar('chart-area',
+    d.perRobot.map(r => r.name),
+    [{
+      label: 'm²',
+      data: d.perRobot.map(r => r.totalAreaM2),
+      backgroundColor: d.perRobot.map((_, i) => COLORS[i] + '33'),
+      borderColor: d.perRobot.map((_, i) => COLORS[i]),
+      borderWidth: 1, borderRadius: 6,
+    }],
+    v => v.toLocaleString('no') + ' m²'
+  );
+
+  // Kumulativt per robot
+  const cumDatasets = d.perRobot.map((r, i) => {
+    let cum = 0;
+    return {
+      label: r.name,
+      data: allDates.map(dt => {
+        const found = r.dailyData.find(x => x.date === dt);
+        cum += found ? found.areaM2 : 0;
+        return cum;
+      }),
+      borderColor: COLORS[i],
+      backgroundColor: COLORS[i] + '11',
+      borderWidth: 2,
+      fill: false,
+      tension: 0.4,
+      pointRadius: 2,
+    };
+  });
+  makeLine('chart-cum', dayLabels, cumDatasets, v => v.toLocaleString('no') + ' m²');
+
+  document.getElementById('err').style.display = 'none';
+}
+
+async function fetchReport() {
+  try {
+    const res  = await fetch(API);
+    const data = await res.json();
+    if (!data.ok) {
+      document.getElementById('err').textContent = '⚠️ ' + (data.message || data.error);
+      document.getElementById('err').style.display = 'block';
+      return;
+    }
+    render(data);
+  } catch {
+    document.getElementById('err').textContent = '⚠️ Klarte ikke nå serveren';
+    document.getElementById('err').style.display = 'block';
+  }
+}
+
+fetchReport();
+setInterval(fetchReport, 30 * 60 * 1000);
+</script>
+</body>
+</html>
