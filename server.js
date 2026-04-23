@@ -23,9 +23,9 @@ const FROM_DATE = '2026-01-10';
 const TO_DATE   = '2026-04-07';
 
 const ROBOT_NAMES = {
-  'GS40D-6290-TCR-4000': 'Robot A',
-  'GS438-6160-H1R-2000': 'Robot B',
-  'GS401-6210-29R-C000': 'Robot C',
+  'GS40D-6290-TCR-4000': 'Mira',
+  'GS438-6160-H1R-2000': 'Phantas',
+  'GS401-6210-29R-C000': 'Omnie',
 };
 
 let currentToken  = process.env.GS_TOKEN || '';
